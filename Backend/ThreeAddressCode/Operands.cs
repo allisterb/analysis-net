@@ -26,11 +26,11 @@ namespace Backend.ThreeAddressCode.Values
 	{
 	}
 
-	public interface IReferenceable : IVariableContainer, IExpression
+	public interface IReferenceable : IVariableContainer, Be.IExpression
 	{
 	}
 
-	public interface IFunctionReference : IVariableContainer, IExpression
+	public interface IFunctionReference : IVariableContainer, Be.IExpression
 	{
 		IMethodReference Method { get; set; }
 	}
@@ -58,12 +58,12 @@ namespace Backend.ThreeAddressCode.Values
 		{
 		}
 
-		IExpression IExpression.Replace(IExpression oldexpr, IExpression newexpr)
+		Be.IExpression Be.IExpression.Replace(Be.IExpression oldexpr, Be.IExpression newexpr)
 		{
 			return this;
 		}
 
-		IExpression IExpressible.ToExpression()
+		Be.IExpression IExpressible.ToExpression()
 		{
 			return this;
 		}
@@ -117,20 +117,20 @@ namespace Backend.ThreeAddressCode.Values
 			if (this.Instance.Equals(oldvar)) this.Instance = newvar;
 		}
 
-		IExpression IExpression.Replace(IExpression oldexpr, IExpression newexpr)
+		Be.IExpression Be.IExpression.Replace(Be.IExpression oldexpr, Be.IExpression newexpr)
 		{
 			var result = this;
 
 			if (oldexpr is IVariable && newexpr is IVariable)
 			{
-				var instance = (this.Instance as IExpression).Replace(oldexpr, newexpr) as IVariable;
+				var instance = (this.Instance as Be.IExpression).Replace(oldexpr, newexpr) as IVariable;
 				result = new VirtualMethodReference(instance, this.Method);
 			}
 
 			return result;
 		}
 
-		IExpression IExpressible.ToExpression()
+		Be.IExpression IExpressible.ToExpression()
 		{
 			return this;
 		}
@@ -160,7 +160,7 @@ namespace Backend.ThreeAddressCode.Values
 		}
 	}
 
-	public interface IInmediateValue : IValue, IExpression
+	public interface IInmediateValue : IValue, Be.IExpression
 	{
 		new ITypeReference Type { get; set; }
 	}
@@ -190,12 +190,12 @@ namespace Backend.ThreeAddressCode.Values
 		{
 		}
 
-		IExpression IExpression.Replace(IExpression oldexpr, IExpression newexpr)
+		Be.IExpression Be.IExpression.Replace(Be.IExpression oldexpr, Be.IExpression newexpr)
 		{
 			return this;
 		}
 
-		IExpression IExpressible.ToExpression()
+		Be.IExpression IExpressible.ToExpression()
 		{
 			return this;
 		}
@@ -225,13 +225,13 @@ namespace Backend.ThreeAddressCode.Values
 		{
 		}
 
-		IExpression IExpression.Replace(IExpression oldexpr, IExpression newexpr)
+		Be.IExpression Be.IExpression.Replace(Be.IExpression oldexpr, Be.IExpression newexpr)
 		{
 			if (this.Equals(oldexpr)) return newexpr;
 			return this;
 		}
 
-		IExpression IExpressible.ToExpression()
+		Be.IExpression IExpressible.ToExpression()
 		{
 			return this;
 		}
@@ -326,13 +326,13 @@ namespace Backend.ThreeAddressCode.Values
 		{
 		}
 
-		IExpression IExpression.Replace(IExpression oldexpr, IExpression newexpr)
+		Be.IExpression Be.IExpression.Replace(Be.IExpression oldexpr, Be.IExpression newexpr)
 		{
 			if (this.Equals(oldexpr)) return newexpr;
 			return this;
 		}
 
-		IExpression IExpressible.ToExpression()
+		Be.IExpression IExpressible.ToExpression()
 		{
 			return this;
 		}
@@ -398,13 +398,13 @@ namespace Backend.ThreeAddressCode.Values
 		{
 		}
 
-		IExpression IExpression.Replace(IExpression oldexpr, IExpression newexpr)
+		Be.IExpression Be.IExpression.Replace(Be.IExpression oldexpr, Be.IExpression newexpr)
 		{
 			if (this.Equals(oldexpr)) return newexpr;
 			return this;
 		}
 
-		IExpression IExpressible.ToExpression()
+		Be.IExpression IExpressible.ToExpression()
 		{
 			return this;
 		}
@@ -478,13 +478,13 @@ namespace Backend.ThreeAddressCode.Values
 		{
 		}
 
-		IExpression IExpression.Replace(IExpression oldexpr, IExpression newexpr)
+		Be.IExpression Be.IExpression.Replace(Be.IExpression oldexpr, Be.IExpression newexpr)
 		{
 			if (this.Equals(oldexpr)) return newexpr;
 			return this;
 		}
 
-		IExpression IExpressible.ToExpression()
+		Be.IExpression IExpressible.ToExpression()
 		{
 			return this;
 		}
@@ -509,7 +509,7 @@ namespace Backend.ThreeAddressCode.Values
 		}
 	}
 
-	public interface IFieldAccess : IExpression
+	public interface IFieldAccess : Be.IExpression
 	{
 		string Name { get; }
 		string FieldName { get; }
@@ -556,13 +556,13 @@ namespace Backend.ThreeAddressCode.Values
 		{
 		}
 
-		IExpression IExpression.Replace(IExpression oldexpr, IExpression newexpr)
+		Be.IExpression Be.IExpression.Replace(Be.IExpression oldexpr, Be.IExpression newexpr)
 		{
 			if (this.Equals(oldexpr)) return newexpr;
 			return this;
 		}
 
-		IExpression IExpressible.ToExpression()
+		Be.IExpression IExpressible.ToExpression()
 		{
 			return this;
 		}
@@ -627,21 +627,21 @@ namespace Backend.ThreeAddressCode.Values
 			if (this.Instance.Equals(oldvar)) this.Instance = newvar;
 		}
 
-		IExpression IExpression.Replace(IExpression oldexpr, IExpression newexpr)
+		Be.IExpression Be.IExpression.Replace(Be.IExpression oldexpr, Be.IExpression newexpr)
 		{
 			if (this.Equals(oldexpr)) return newexpr;
 			var result = this;
 
 			if (oldexpr is IVariable && newexpr is IVariable)
 			{
-				var instance = (this.Instance as IExpression).Replace(oldexpr, newexpr) as IVariable;
+				var instance = (this.Instance as Be.IExpression).Replace(oldexpr, newexpr) as IVariable;
 				result = new InstanceFieldAccess(instance, this.Field);
 			}
 
 			return result;
 		}
 
-		IExpression IExpressible.ToExpression()
+		Be.IExpression IExpressible.ToExpression()
 		{
 			return this;
 		}
@@ -700,21 +700,21 @@ namespace Backend.ThreeAddressCode.Values
 			if (this.Instance.Equals(oldvar)) this.Instance = newvar;
 		}
 
-		IExpression IExpression.Replace(IExpression oldexpr, IExpression newexpr)
+		Be.IExpression Be.IExpression.Replace(Be.IExpression oldexpr, Be.IExpression newexpr)
 		{
 			if (this.Equals(oldexpr)) return newexpr;
 			var result = this;
 
 			if (oldexpr is IVariable && newexpr is IVariable)
 			{
-				var instance = (this.Instance as IExpression).Replace(oldexpr, newexpr) as IVariable;
+				var instance = (this.Instance as Be.IExpression).Replace(oldexpr, newexpr) as IVariable;
 				result = new ArrayLengthAccess(instance);
 			}
 
 			return result;
 		}
 
-		IExpression IExpressible.ToExpression()
+		Be.IExpression IExpressible.ToExpression()
 		{
 			return this;
 		}
@@ -739,7 +739,7 @@ namespace Backend.ThreeAddressCode.Values
 		}
 	}
 
-	public class ArrayElementAccess : IAssignableValue, IReferenceable, IExpression
+	public class ArrayElementAccess : IAssignableValue, IReferenceable, Be.IExpression
 	{
 		public IVariable Array { get; set; }
 		public IList<IVariable> Indices { get; set; }
@@ -775,20 +775,20 @@ namespace Backend.ThreeAddressCode.Values
             }
 		}
 
-		IExpression IExpression.Replace(IExpression oldexpr, IExpression newexpr)
+		Be.IExpression Be.IExpression.Replace(Be.IExpression oldexpr, Be.IExpression newexpr)
 		{
 			if (this.Equals(oldexpr)) return newexpr;
 			var result = this;
 
 			if (oldexpr is IVariable && newexpr is IVariable)
 			{
-				var array = (this.Array as IExpression).Replace(oldexpr, newexpr) as IVariable;
+				var array = (this.Array as Be.IExpression).Replace(oldexpr, newexpr) as IVariable;
                 var indices = new List<IVariable>();
 
                 for (int i = 0; i < Indices.Count; i++)
                 {
 
-                    var index = (this.Indices[i] as IExpression).Replace(oldexpr, newexpr) as IVariable;
+                    var index = (this.Indices[i] as Be.IExpression).Replace(oldexpr, newexpr) as IVariable;
                     indices.Add(index);
                 }
 
@@ -798,7 +798,7 @@ namespace Backend.ThreeAddressCode.Values
 			return result;
 		}
 
-		IExpression IExpressible.ToExpression()
+		Be.IExpression IExpressible.ToExpression()
 		{
 			return this;
 		}
@@ -826,7 +826,7 @@ namespace Backend.ThreeAddressCode.Values
 		}
 	}
 
-	public class Dereference : IAssignableValue, IReferenceable, IExpression
+	public class Dereference : IAssignableValue, IReferenceable, Be.IExpression
 	{
 		public IVariable Reference { get; set; }
 
@@ -850,21 +850,21 @@ namespace Backend.ThreeAddressCode.Values
 			if (this.Reference.Equals(oldvar)) this.Reference = newvar;
 		}
 
-		IExpression IExpression.Replace(IExpression oldexpr, IExpression newexpr)
+		Be.IExpression Be.IExpression.Replace(Be.IExpression oldexpr, Be.IExpression newexpr)
 		{
 			if (this.Equals(oldexpr)) return newexpr;
 			var result = this;
 
 			if (oldexpr is IVariable && newexpr is IVariable)
 			{
-				var reference = (this.Reference as IExpression).Replace(oldexpr, newexpr) as IVariable;
+				var reference = (this.Reference as Be.IExpression).Replace(oldexpr, newexpr) as IVariable;
 				result = new Dereference(reference);
 			}
 
 			return result;
 		}
 
-		IExpression IExpressible.ToExpression()
+		Be.IExpression IExpressible.ToExpression()
 		{
 			return this;
 		}
@@ -889,7 +889,7 @@ namespace Backend.ThreeAddressCode.Values
 		}
 	}
 
-	public class Reference : IValue, IExpression
+	public class Reference : IValue, Be.IExpression
 	{
 		public IReferenceable Value { get; set; }
 
@@ -914,17 +914,17 @@ namespace Backend.ThreeAddressCode.Values
 			else (this.Value as IVariableContainer).Replace(oldvar, newvar);
 		}
 
-		IExpression IExpression.Replace(IExpression oldexpr, IExpression newexpr)
+		Be.IExpression Be.IExpression.Replace(Be.IExpression oldexpr, Be.IExpression newexpr)
 		{
 			if (this.Equals(oldexpr)) return newexpr;
 
-			var value = (this.Value as IExpression).Replace(oldexpr, newexpr) as IReferenceable;
+			var value = (this.Value as Be.IExpression).Replace(oldexpr, newexpr) as IReferenceable;
 			var result = new Reference(value);
 
 			return result;
 		}
 
-		IExpression IExpressible.ToExpression()
+		Be.IExpression IExpressible.ToExpression()
 		{
 			return this;
 		}

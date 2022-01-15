@@ -17,7 +17,7 @@ namespace Console
 			//const string root = @"C:"; // casa
 			//const string root = @"C:\Users\Edgar\Projects"; // facu
 
-			const string input = root + @"\Test\bin\Debug\Test.dll";
+			const string input = @"C:\Projects\Silver\tests\Silver.CodeAnalysis.IL.Tests\bin\Debug\net6.0\Factorial.dll";
 
 			using (var host = new PeReader.DefaultHost())
 			using (var assembly = new Assembly(host))

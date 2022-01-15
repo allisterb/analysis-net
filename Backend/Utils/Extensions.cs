@@ -287,9 +287,9 @@ namespace Backend.Utils
 			return new HashSet<CFGNode>(result);
 		}
 
-		public static IExpression ToExpression(this IValue value)
+		public static Be.IExpression ToExpression(this IValue value)
 		{
-			return value as IExpression;
+			return value as Be.IExpression;
 		}
 
 		//public static IExpression GetValueOriginal(this IDictionary<IVariable, IExpression> equalities, IVariable variable)
@@ -298,9 +298,9 @@ namespace Backend.Utils
 		//    return result;
 		//}
 		
-		public static IExpression GetValue(this IDictionary<IVariable, IExpression> equalities, IVariable variable)
+		public static Be.IExpression GetValue(this IDictionary<IVariable, Be.IExpression> equalities, IVariable variable)
 		{
-			IExpression result = variable;
+			Be.IExpression result = (Be.IExpression) variable;
 
 			while (variable != null && equalities.ContainsKey(variable))
 			{
@@ -344,7 +344,7 @@ namespace Backend.Utils
 			return result;
 		}
 
-		public static IExpression ReplaceVariables<T>(this IExpression expr, IDictionary<IVariable, T> equalities) where T : IExpression
+		public static Be.IExpression ReplaceVariables<T>(this Be.IExpression expr, IDictionary<IVariable, T> equalities) where T : Be.IExpression
 		{
 			foreach (var variable in expr.Variables)
 			{
@@ -362,7 +362,7 @@ namespace Backend.Utils
 						if (isUnknown || isPhi || isMethodCall)
 							continue;
 
-						expr = expr.Replace(variable, value);
+						expr = expr.Replace((Be.IExpression) variable, value);
 					}
 				}
 			}

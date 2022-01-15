@@ -164,7 +164,7 @@ namespace Backend.ThreeAddressCode.Instructions
 			visitor.Visit(this);
 		}
 
-		public abstract IExpression ToExpression();
+		public abstract Be.IExpression ToExpression();
 	}
 
 	public class BinaryInstruction : DefinitionInstruction
@@ -201,7 +201,7 @@ namespace Backend.ThreeAddressCode.Instructions
 			visitor.Visit(this);
 		}
 
-		public override IExpression ToExpression()
+		public override Be.IExpression ToExpression()
 		{
 			var expression = new BinaryExpression(this.LeftOperand, this.Operation, this.RightOperand);
 			expression.OverflowCheck = this.OverflowCheck;
@@ -267,7 +267,7 @@ namespace Backend.ThreeAddressCode.Instructions
 			visitor.Visit(this);
 		}
 
-		public override IExpression ToExpression()
+		public override Be.IExpression ToExpression()
 		{
 			return new UnaryExpression(this.Operation, this.Operand) { Type = this.Result.Type };
 		}
@@ -328,7 +328,7 @@ namespace Backend.ThreeAddressCode.Instructions
 			visitor.Visit(this);
 		}
 
-		public override IExpression ToExpression()
+		public override Be.IExpression ToExpression()
 		{
 			return this.Operand.ToExpression();
 		}
@@ -488,7 +488,7 @@ namespace Backend.ThreeAddressCode.Instructions
 			visitor.Visit(this);
 		}
 
-		public override IExpression ToExpression()
+		public override Be.IExpression ToExpression()
 		{
 			return new CatchExpression(this.ExceptionType);
 		}
@@ -533,7 +533,7 @@ namespace Backend.ThreeAddressCode.Instructions
 			visitor.Visit(this);
 		}
 
-		public override IExpression ToExpression()
+		public override Be.IExpression ToExpression()
 		{
 			var expression = new ConvertExpression(this.Operand, this.Operation, this.ConversionType);
 			expression.OverflowCheck = this.OverflowCheck;
@@ -818,7 +818,7 @@ namespace Backend.ThreeAddressCode.Instructions
 			visitor.Visit(this);
 		}
 
-		public override IExpression ToExpression()
+		public override Be.IExpression ToExpression()
 		{
 			return new SizeofExpression(this.MeasuredType);
 		}
@@ -840,7 +840,7 @@ namespace Backend.ThreeAddressCode.Instructions
 			this.Token = token;
 		}
 
-		public override IExpression ToExpression()
+		public override Be.IExpression ToExpression()
 		{
 			return new TokenExpression(this.Token);
 		}
@@ -921,7 +921,7 @@ namespace Backend.ThreeAddressCode.Instructions
 			visitor.Visit(this);
 		}
 
-		public override IExpression ToExpression()
+		public override Be.IExpression ToExpression()
 		{
 			return new MethodCallExpression(this.Method, this.Arguments);
 		}
@@ -1006,7 +1006,7 @@ namespace Backend.ThreeAddressCode.Instructions
 			visitor.Visit(this);
 		}
 
-		public override IExpression ToExpression()
+		public override Be.IExpression ToExpression()
 		{
 			return new IndirectMethodCallExpression(this.Pointer, this.Function, this.Arguments);
 		}
@@ -1041,7 +1041,7 @@ namespace Backend.ThreeAddressCode.Instructions
 			visitor.Visit(this);
 		}
 
-		public override IExpression ToExpression()
+		public override Be.IExpression ToExpression()
 		{
 			return new CreateObjectExpression(this.AllocationType);
 		}
@@ -1281,7 +1281,7 @@ namespace Backend.ThreeAddressCode.Instructions
 			visitor.Visit(this);
 		}
 
-		public override IExpression ToExpression()
+		public override Be.IExpression ToExpression()
 		{
 			return new CreateArrayExpression(this.ElementType, this.Rank, this.LowerBounds, this.Sizes);
 		}
@@ -1325,7 +1325,7 @@ namespace Backend.ThreeAddressCode.Instructions
 			visitor.Visit(this);
 		}
 
-		public override IExpression ToExpression()
+		public override Be.IExpression ToExpression()
 		{
 			return new PhiExpression(this.Arguments);
 		}
