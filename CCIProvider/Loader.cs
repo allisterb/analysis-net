@@ -62,17 +62,16 @@ namespace CCIProvider
 
 			if (File.Exists(pdbFileName))
 			{
-				using (var pdbStream = File.OpenRead(pdbFileName))
+				
+				try
 				{
-					try
-					{
-						pdbReader = new Cci.PdbReader(pdbStream, cciHost);
-					}
-					catch (Exception ex)
-					{
-						// TODO: Do something with the exception.
-					}
+					pdbReader = new Cci.PdbReader(fileName, pdbFileName, cciHost, true);
 				}
+				catch (Exception ex)
+				{
+					// TODO: Do something with the exception.
+				}
+				
 			}
 
 			var assembly = this.ExtractAssembly(module, pdbReader);
