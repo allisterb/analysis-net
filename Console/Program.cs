@@ -118,7 +118,7 @@ namespace Console
 			//const string root = @"C:"; // casa
 			//const string root = @"C:\Users\Edgar\Projects"; // facu
 
-			const string input = root + @"\Test\bin\Debug\Test.dll";
+			const string input = @"C:\Projects\analysis-net.net6\Test\bin\Debug\Test.dll";
 
 			var host = new Host();
 			//host.Assemblies.Add(assembly);
@@ -187,7 +187,7 @@ namespace Console
 		private static void RunGenericsTests()
 		{
 			const string root = @"..\..\..";
-			const string input = root + @"\Test\bin\Debug\Test.dll";
+			const string input = @"C:\Projects\analysis-net.net6\Test\bin\Debug\Test.dll";
 
 			var host = new Host();
 
@@ -292,7 +292,7 @@ namespace Console
 		private static void RunInterPointsToTests()
 		{
 			const string root = @"..\..\..";
-			const string input = root + @"\Test\bin\Debug\Test.dll";
+			const string input = @"C:\Projects\analysis-net.net6\Test\bin\Debug\Test.dll";
 
 			var host = new Host();
 
@@ -356,7 +356,7 @@ namespace Console
 					//ptg.RemoveVariablesExceptParameters();
 					var dgml_PTG = DGMLSerializer.Serialize(ptg);
 
-					//System.IO.File.WriteAllText(@"ptg.dgml", dgml_PTG);
+					System.IO.File.WriteAllText(@"ptg.dgml", dgml_PTG);
 				}
 
 				EscapeInfo escapeInfo;

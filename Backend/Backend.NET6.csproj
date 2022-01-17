@@ -8,12 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\cci\NET6\Microsoft.Cci\Microsoft.Cci.NET6.csproj" />
-    <ProjectReference Include="..\Model\Model.NET6.csproj" />
+    <Compile Remove="Properties\**" />
+    <EmbeddedResource Remove="Properties\**" />
+    <None Remove="Properties\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <ProjectReference Include="..\cci\NET6\Microsoft.Cci\Microsoft.Cci.NET6.csproj" />
+    <ProjectReference Include="..\Model\Model.NET6.csproj" />
   </ItemGroup>
   
 

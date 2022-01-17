@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\cci\NET6\Microsoft.Cci\Microsoft.Cci.NET6.csproj" />
     <ProjectReference Include="..\Backend\Backend.NET6.csproj" />
+    <ProjectReference Include="..\cci\NET6\Microsoft.Cci\Microsoft.Cci.NET6.csproj" />
     <ProjectReference Include="..\Model\Model.NET6.csproj" />
   </ItemGroup>
 
