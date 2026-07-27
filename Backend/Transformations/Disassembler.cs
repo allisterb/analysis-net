@@ -425,13 +425,57 @@ namespace Backend.Transformations
 			{
 				IVariable operand = null;
 
-				if (!returnType.Equals(PlatformTypes.Void))
+				if (!IsVoidReturn(returnType))
 				{
 					operand = stack.Pop();
 				}
 
 				var instruction = new Tac.ReturnInstruction(op.Offset, operand);
 				body.Instructions.Add(instruction);
+			}
+
+			// Known core-library assembly names that legitimately define System.Void, measured
+			// directly off real assemblies (see docs/agent/measurements/): "mscorlib" (.NET
+			// Framework/Mono/net45), "System.Runtime" (net5.0+ reference-assembly-style typerefs,
+			// the overwhelming majority of modern IL), "System.Private.CoreLib" (when the analyzed
+			// module *is* the runtime's own corlib, e.g. pointing the analyzer straight at
+			// System.Private.CoreLib.dll), and "netstandard" (netstandard2.0-targeted assemblies,
+			// common across NuGet). Compared case-insensitively: assembly-name binding itself is
+			// case-insensitive in .NET, and metadata is free to author the name in any case.
+			private static readonly HashSet<string> knownCoreLibraryAssemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+			{
+				"mscorlib",
+				"System.Runtime",
+				"System.Private.CoreLib",
+				"netstandard",
+			};
+
+			// PlatformTypes.Void is pinned to "mscorlib" (Model/Types/Types.cs), but modern IL
+			// stamps System.Void with the module's own core library (e.g. [System.Runtime]System.Void
+			// or [System.Private.CoreLib]System.Void), so BasicType.Equals -- which compares
+			// ContainingAssembly -- never matches. Used at every "is this call/return void" check in
+			// this file (a plain return, a direct call, and an indirect/calli call): without it, a
+			// void method's own `ret` pops an operand off an empty stack, and every *call* to a void
+			// method on a modern assembly wrongly pushes a phantom result that nothing ever pops.
+			// Compare by namespace + name, restricted to known core-library assembly identities --
+			// NOT assembly-agnostic -- so an assembly under any *other* name that declares its own
+			// `namespace System { struct Void { } }` (this compiles in plain C# with only CS0436,
+			// no metadata trickery needed) is not mistaken for the real System.Void and does not
+			// silently drop a returned value from the lifted TAC. It does NOT close the case of an
+			// assembly whose simple name collides with an allowlisted entry (e.g. one literally
+			// named "mscorlib" defining a hostile System.Void): IAssemblyReference (Model/Assembly.cs)
+			// carries only Name : string -- no public key token, no version -- so any name-based
+			// corlib allowlist here is spoofable by simple-name collision. Closing that residual
+			// needs strong assembly identity in the Model layer, which is out of scope for this method.
+			private static bool IsVoidReturn(IType type)
+			{
+				return type.Equals(PlatformTypes.Void) ||
+					(type is IBasicType basicType &&
+					 basicType.GenericParameterCount == 0 &&
+					 basicType.Name == PlatformTypes.Void.Name &&
+					 basicType.ContainingNamespace == PlatformTypes.Void.ContainingNamespace &&
+					 basicType.ContainingAssembly != null &&
+					 knownCoreLibraryAssemblyNames.Contains(basicType.ContainingAssembly.Name));
 			}
 
 			public override void Visit(Bytecode.BranchInstruction op)
@@ -723,7 +767,7 @@ namespace Backend.Transformations
 
 				arguments.Reverse();
 
-				if (!op.Function.ReturnType.Equals(PlatformTypes.Void))
+				if (!IsVoidReturn(op.Function.ReturnType))
 				{
 					result = stack.Push();
 				}
@@ -918,7 +962,7 @@ namespace Backend.Transformations
 
 				arguments.Reverse();
 
-				if (!op.Method.ReturnType.Equals(PlatformTypes.Void))
+				if (!IsVoidReturn(op.Method.ReturnType))
 				{
 					result = stack.Push();
 				}
