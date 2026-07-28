@@ -802,8 +802,16 @@ namespace Model.ThreeAddressCode.Values
 		{
 			get
 			{
+				// Same shape and root cause as Dereference.Type
+				// (docs/agent/measurements/dereference-type-nre-fix.md): after that fix, this
+				// getter became the dominant residual NRE (71/71 of the net45 control's aborts,
+				// 11/11 of Silvergun.CodeAnalysis.IL.dll's). this.Array is a stack temporary
+				// (ldelem/stelem operand) whose Type is only assigned lazily by
+				// TypeInferenceAnalysis's own fixed-point pass, so reading it before that pass
+				// has propagated a type is "not yet known", not an error -- return null (not
+				// PlatformTypes.Unknown) to preserve the fixed point's self-healing retry.
 				var arrayType = this.Array.Type as ArrayType;
-				return arrayType.ElementsType;
+				return arrayType?.ElementsType;
 			}
 		}
 
@@ -885,8 +893,23 @@ namespace Model.ThreeAddressCode.Values
 		{
 			get
 			{
+				// Guard added after measuring the NRE this used to throw unconditionally
+				// (docs/agent/measurements/dereference-type-nre-fix.md): across a 9-assembly
+				// corpus (net45/mscorlib and modern corlibs alike), Reference.Type was null in
+				// 100% of firings -- never UnknownType, never a concrete non-pointer type. The
+				// address an indirect load/store (ldind/stind) pops off the stack is a fresh
+				// TemporalVariable whose Type is only assigned lazily by TypeInferenceAnalysis's
+				// own fixed-point pass, not by the Disassembler, so reading it before that pass
+				// has propagated a type onto Reference is the same "not yet known" state every
+				// other Type getter in this file already tolerates (Visit(StoreInstruction) /
+				// Visit(LoadInstruction) / Visit(ReturnInstruction) all treat "operand.Type ==
+				// null" as "wait for the next fixed-point iteration", not an error). Returning
+				// null (not PlatformTypes.Unknown) keeps that same self-healing contract: once
+				// Reference.Type is set by an earlier instruction in the pass, this getter starts
+				// returning the real TargetType on the next iteration instead of permanently
+				// pinning the result to Unknown.
 				var pointerType = this.Reference.Type as PointerType;
-				return pointerType.TargetType;
+				return pointerType?.TargetType;
 			}
 		}
 

@@ -528,6 +528,11 @@ namespace Model.Types
 
 		public static IType BinaryLogicalOperationType(IType left, IType right)
 		{
+			// Same null-tolerant contract as BinarySignedNumericOperationType below -- see that
+			// guard's comment (and docs/agent/measurements/typeinference-nullguard-fixes.md) for
+			// why this returns null instead of PlatformTypes.Unknown.
+			if (left == null || right == null) return null;
+
 			IType type = null;
 
 			if (left.Equals(PlatformTypes.Boolean) && right.Equals(PlatformTypes.Boolean))
@@ -560,6 +565,11 @@ namespace Model.Types
 		/// </summary>
 		public static IType UnsignedEquivalent(IType type)
 		{
+			// BinaryNumericOperationType below is the only outer-fork caller (its own
+			// BinarySignedNumericOperationType can now return null -- see that guard's comment)
+			// so this needs the same null-tolerant contract or the NRE just moves here instead
+			// of being fixed. type == null still means "not yet known"; propagate that, don't guess.
+			if (type == null) return null;
 			if (type.Equals(PlatformTypes.Int8)) return PlatformTypes.UInt8;
 			else if (type.Equals(PlatformTypes.Int16)) return PlatformTypes.UInt16;
 			else if (type.Equals(PlatformTypes.Int32)) return PlatformTypes.UInt32;
@@ -576,6 +586,18 @@ namespace Model.Types
 
 		public static IType BinarySignedNumericOperationType(IType left, IType right)
 		{
+			// Guard added after measuring the NRE this used to throw unconditionally
+			// (docs/agent/measurements/typeinference-nullguard-fixes.md) -- 728/773 of Roslyn's
+			// residual post-Dereference-fix NREs traced here. Unlike Dereference.Type/
+			// ArrayElementAccess.Type, left/right are parameters, not a property read, but the
+			// same fixed-point contract applies: Visit(BinaryInstruction) in
+			// TypeInferenceAnalysis.cs assigns our return value straight to
+			// instruction.Result.Type (via BinaryNumericOperationType/BinaryLogicalOperationType),
+			// the same "assign, possibly null, corrected next iteration" pattern every other
+			// Visit(...) case already relies on -- so return null ("not yet known"), not
+			// PlatformTypes.Unknown, which would permanently pin a wrong answer.
+			if (left == null || right == null) return null;
+
 			if (left.Equals(PlatformTypes.Boolean) ||
 				left.Equals(PlatformTypes.Char) ||
 				left.Equals(PlatformTypes.UInt8) ||
