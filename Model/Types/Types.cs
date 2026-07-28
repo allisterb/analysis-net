@@ -249,11 +249,29 @@ namespace Model.Types
 		{
 			var other = obj as IBasicType;
 			// TODO: Maybe we should also compare the TypeKind?
+			// Assembly identity: two types are considered the same assembly either when
+			// ContainingAssembly matches exactly, or when BOTH sides are known core libraries
+			// (see CoreLibraryNames -- NOT "ignore the assembly": a corlib type is never unified
+			// with a same-named type from an arbitrary third-party assembly). This closes the
+			// defect where PlatformTypes is pinned to "mscorlib" (see New(), above) while modern
+			// IL stamps its own corlib name (e.g. "System.Runtime", "System.Private.CoreLib"), so
+			// every PlatformTypes.X comparison against a modern assembly's types silently returned
+			// false -- measured at 4.14% of comparisons overall, 18.5% for boolean-typed returns
+			// (docs/agent/measurements/platformtypes-comparison-audit.md). Via type forwarding,
+			// [mscorlib]System.Boolean and [System.Runtime]System.Boolean genuinely are the same
+			// type, so unifying them is the correct answer, not a workaround.
+			// GetHashCode (below) already ignores ContainingAssembly entirely, so this does not
+			// weaken the existing Equals/GetHashCode contract.
+			// Known residual: CoreLibraryNames matches by assembly Name only (Model/Assembly.cs's
+			// IAssemblyReference carries no public key token or version), so this is spoofable by
+			// an assembly that simply names itself "mscorlib" while defining a hostile type of the
+			// same name+namespace. Not closed here -- see CoreLibraryNames's own comment.
 			var result = other != null &&
 						 this.Name == other.Name &&
 						 this.GenericParameterCount == other.GenericParameterCount &&
 						 this.ContainingNamespace == other.ContainingNamespace &&
-                         this.ContainingAssembly.Equals(other.ContainingAssembly) &&
+                         (this.ContainingAssembly.Equals(other.ContainingAssembly) ||
+                          CoreLibraryNames.AreBothCoreLibraries(this.ContainingAssembly, other.ContainingAssembly)) &&
 						 this.GenericArguments.SequenceEqual(other.GenericArguments);
 
 			return result;

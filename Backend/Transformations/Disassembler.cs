@@ -434,48 +434,32 @@ namespace Backend.Transformations
 				body.Instructions.Add(instruction);
 			}
 
-			// Known core-library assembly names that legitimately define System.Void, measured
-			// directly off real assemblies (see docs/agent/measurements/): "mscorlib" (.NET
-			// Framework/Mono/net45), "System.Runtime" (net5.0+ reference-assembly-style typerefs,
-			// the overwhelming majority of modern IL), "System.Private.CoreLib" (when the analyzed
-			// module *is* the runtime's own corlib, e.g. pointing the analyzer straight at
-			// System.Private.CoreLib.dll), and "netstandard" (netstandard2.0-targeted assemblies,
-			// common across NuGet). Compared case-insensitively: assembly-name binding itself is
-			// case-insensitive in .NET, and metadata is free to author the name in any case.
-			private static readonly HashSet<string> knownCoreLibraryAssemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-			{
-				"mscorlib",
-				"System.Runtime",
-				"System.Private.CoreLib",
-				"netstandard",
-			};
-
 			// PlatformTypes.Void is pinned to "mscorlib" (Model/Types/Types.cs), but modern IL
 			// stamps System.Void with the module's own core library (e.g. [System.Runtime]System.Void
-			// or [System.Private.CoreLib]System.Void), so BasicType.Equals -- which compares
-			// ContainingAssembly -- never matches. Used at every "is this call/return void" check in
-			// this file (a plain return, a direct call, and an indirect/calli call): without it, a
-			// void method's own `ret` pops an operand off an empty stack, and every *call* to a void
-			// method on a modern assembly wrongly pushes a phantom result that nothing ever pops.
-			// Compare by namespace + name, restricted to known core-library assembly identities --
-			// NOT assembly-agnostic -- so an assembly under any *other* name that declares its own
-			// `namespace System { struct Void { } }` (this compiles in plain C# with only CS0436,
-			// no metadata trickery needed) is not mistaken for the real System.Void and does not
-			// silently drop a returned value from the lifted TAC. It does NOT close the case of an
-			// assembly whose simple name collides with an allowlisted entry (e.g. one literally
-			// named "mscorlib" defining a hostile System.Void): IAssemblyReference (Model/Assembly.cs)
-			// carries only Name : string -- no public key token, no version -- so any name-based
-			// corlib allowlist here is spoofable by simple-name collision. Closing that residual
-			// needs strong assembly identity in the Model layer, which is out of scope for this method.
+			// or [System.Private.CoreLib]System.Void). Used at every "is this call/return void" check
+			// in this file (a plain return, a direct call, and an indirect/calli call): without
+			// unifying the two, a void method's own `ret` pops an operand off an empty stack, and
+			// every *call* to a void method on a modern assembly wrongly pushes a phantom result that
+			// nothing ever pops.
+			//
+			// This used to carry its own local core-library allowlist and a hand-rolled
+			// namespace+name fallback comparison here, duplicating the general fix now made in
+			// BasicType.Equals (Model/Types/Types.cs) and Model.Types.CoreLibraryNames -- see
+			// docs/agent/tasks/platformtypes-comparison-fix.md. BasicType.Equals now performs the
+			// same known-core-library unification for every comparison, not just this one, so
+			// type.Equals(PlatformTypes.Void) alone is sufficient; the local fallback here would be
+			// dead code duplicating CoreLibraryNames. Verified against
+			// docs/agent/measurements/tac-platformtypes-spike.md's void-lifting regression table
+			// (still 1,140 total failures, unchanged) before removing it.
+			//
+			// Residual (inherited from CoreLibraryNames, not closed here): IAssemblyReference
+			// (Model/Assembly.cs) carries only Name : string -- no public key token, no version --
+			// so the allowlist is spoofable by simple-name collision (e.g. an assembly literally
+			// named "mscorlib" defining a hostile System.Void). Closing that needs strong assembly
+			// identity in the Model layer.
 			private static bool IsVoidReturn(IType type)
 			{
-				return type.Equals(PlatformTypes.Void) ||
-					(type is IBasicType basicType &&
-					 basicType.GenericParameterCount == 0 &&
-					 basicType.Name == PlatformTypes.Void.Name &&
-					 basicType.ContainingNamespace == PlatformTypes.Void.ContainingNamespace &&
-					 basicType.ContainingAssembly != null &&
-					 knownCoreLibraryAssemblyNames.Contains(basicType.ContainingAssembly.Name));
+				return type.Equals(PlatformTypes.Void);
 			}
 
 			public override void Visit(Bytecode.BranchInstruction op)
