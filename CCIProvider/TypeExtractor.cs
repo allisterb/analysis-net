@@ -475,6 +475,8 @@ namespace CCIProvider
 			var returnType = ExtractType(methodref.Type);
 			var method = new MethodReference(methodref.Name.Value, returnType);
 
+			ExtractReturnValue(method.ReturnValueCustomModifiers, methodref);
+			method.ReturnValueIsByRef = methodref.ReturnValueIsByRef;
 			ExtractAttributes(method.Attributes, methodref.Attributes);
 			ExtractParameters(method.Parameters, methodref.Parameters);
 
@@ -505,6 +507,17 @@ namespace CCIProvider
 
 			method.Resolve(host);
 			return method;
+		}
+
+		// Silvergun: the return value's custom modifiers, in signature order.
+		private void ExtractReturnValue(IList<CustomModifier> dest, Cci.ISignature source)
+		{
+			if (!source.ReturnValueIsModified) return;
+
+			foreach (var modifier in source.ReturnValueCustomModifiers)
+			{
+				dest.Add(new CustomModifier(ExtractType(modifier.Modifier), modifier.IsOptional));
+			}
 		}
 
 		private void ExtractAttributes(ISet<CustomAttribute> dest, IEnumerable<Cci.ICustomAttribute> source)
@@ -646,6 +659,8 @@ namespace CCIProvider
 				var type = ExtractType(methoddef.Type);
 				var method = new MethodDefinition(name, type);
 
+				ExtractReturnValue(method.ReturnValueCustomModifiers, methoddef);
+				method.ReturnValueIsByRef = methoddef.ReturnValueIsByRef;
 				ExtractAttributes(method.Attributes, methoddef.Attributes);
 				ExtractGenericMethodParameters(method, methoddef);
 				ExtractParameters(method.Parameters, methoddef.Parameters);

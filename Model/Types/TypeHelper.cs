@@ -21,7 +21,9 @@ namespace Model.Types
 			var typeContainer = self as ITypeDefinitionContainer;
 			var types = typeContainer.GetAllTypes();
 			var nestedNamespacesTypes = self.Namespaces.SelectMany(n => n.GetAllTypes());
-			var result = types.Union(nestedNamespacesTypes);
+			// Silvergun: Concat, not Union. A definition sits in exactly one container, so there is nothing to remove, and
+			// Union hashes a type definition by its simple name alone: N definitions of one name cost N^2.
+			var result = types.Concat(nestedNamespacesTypes);
 			return result;
 		}
 
@@ -30,7 +32,8 @@ namespace Model.Types
 			var types = self.Types;
 			var nestedTypes = self.Types.OfType<ITypeDefinitionContainer>()
 										.SelectMany(t => t.GetAllTypes());
-			var result = types.Union(nestedTypes);
+			// Silvergun: Concat, not Union (see above).
+			var result = types.Concat(nestedTypes);
 			return result;
 		}
 

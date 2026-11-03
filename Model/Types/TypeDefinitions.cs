@@ -119,8 +119,10 @@ namespace Model.Types
 			get
 			{
 				var result = this.Types.AsEnumerable<ITypeMemberDefinition>();
-				result = result.Union(this.Fields);
-				result = result.Union(this.Methods);
+				// Silvergun: Concat, not Union (see TypeHelper.GetAllTypes): the lists never share a definition, and a
+				// type definition hashes by its simple name alone, so N same-named nested types cost N^2.
+				result = result.Concat(this.Fields);
+				result = result.Concat(this.Methods);
 				return result;
 			}
 		}
@@ -465,6 +467,9 @@ namespace Model.Types
 	public interface IMethodReference : ITypeMemberReference, IMetadataReference, IGenericReference
 	{
 		IType ReturnType { get; }
+		// Silvergun: the by-ref-ness and custom modifiers of the return value, which ReturnType alone does not carry.
+		bool ReturnValueIsByRef { get; }
+		IList<CustomModifier> ReturnValueCustomModifiers { get; }
 		string Name { get; }
 		string GenericName { get; }
 		IList<IMethodParameterReference> Parameters { get; }
@@ -482,6 +487,8 @@ namespace Model.Types
 		public ISet<CustomAttribute> Attributes { get; private set; }
 		public IBasicType ContainingType { get; set; }
 		public IType ReturnType { get; set; }
+		public bool ReturnValueIsByRef { get; set; }
+		public IList<CustomModifier> ReturnValueCustomModifiers { get; private set; }
 		public string Name { get; set; }
 		public int GenericParameterCount { get; set; }
 		public IList<IType> GenericArguments { get; private set; }
@@ -493,6 +500,7 @@ namespace Model.Types
 		{
 			this.Name = name;
 			this.ReturnType = returnType;
+			this.ReturnValueCustomModifiers = new List<CustomModifier>();
 			this.Parameters = new List<IMethodParameterReference>();
 			this.Attributes = new HashSet<CustomAttribute>();
 			this.GenericArguments = new List<IType>();
@@ -589,6 +597,8 @@ namespace Model.Types
 		public ISet<CustomAttribute> Attributes { get; private set; }
 		public ITypeDefinition ContainingType { get; set; }
 		public IType ReturnType { get; set; }
+		public bool ReturnValueIsByRef { get; set; }
+		public IList<CustomModifier> ReturnValueCustomModifiers { get; private set; }
 		public string Name { get; set; }
 		public IList<GenericParameter> GenericParameters { get; private set; }
 		public IList<MethodParameter> Parameters { get; private set; }
@@ -603,6 +613,7 @@ namespace Model.Types
 		{
 			this.Name = name;
 			this.ReturnType = returnType;
+			this.ReturnValueCustomModifiers = new List<CustomModifier>();
 			this.Attributes = new HashSet<CustomAttribute>();
 			this.GenericParameters = new List<GenericParameter>();
 			this.Parameters = new List<MethodParameter>();
@@ -1152,8 +1163,10 @@ namespace Model.Types
 			get
 			{
 				var result = this.Types.AsEnumerable<ITypeMemberDefinition>();
-				result = result.Union(this.Fields);
-				result = result.Union(this.Methods);
+				// Silvergun: Concat, not Union (see TypeHelper.GetAllTypes): the lists never share a definition, and a
+				// type definition hashes by its simple name alone, so N same-named nested types cost N^2.
+				result = result.Concat(this.Fields);
+				result = result.Concat(this.Methods);
 				return result;
 			}
 		}
