@@ -17,11 +17,21 @@ namespace CCIProvider
 	{
 		private Host ourHost;
 		private Cci.MetadataReaderHost cciHost;
+		// Silvergun: whether a .pdb beside the assembly is read for source locations. A PDB is one more untrusted parser
+		// (CCI's PdbReader and the DiaSymReader converter, a separate compilation whose Debug.Assert can FailFast), so a
+		// caller that needs no source locations turns it off (ADR 0022 Stage 1).
+		private readonly bool readPdbs;
 
-		public Loader(Host host)
+		public Loader(Host host) : this(host, true)
+		{
+		}
+
+		// Silvergun: readPdbs = false skips the sibling .pdb entirely.
+		public Loader(Host host, bool readPdbs)
 		{
 			this.ourHost = host;
 			this.cciHost = new Cci.PeReader.DefaultHost();
+			this.readPdbs = readPdbs;
 		}
 
 		public void Dispose()
@@ -60,7 +70,7 @@ namespace CCIProvider
 			var pdbFileName = Path.ChangeExtension(fileName, "pdb");
 			Cci.PdbReader pdbReader = null;
 
-			if (File.Exists(pdbFileName))
+			if (this.readPdbs && File.Exists(pdbFileName)) // Silvergun: readPdbs
 			{
 				
 				try

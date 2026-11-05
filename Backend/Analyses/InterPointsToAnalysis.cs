@@ -436,9 +436,8 @@ namespace Backend.Analyses
 					// But it would be much better to have the node already created from before.
 					// It make no sense to have a reference pointing to nothing at all,
 					// it should at least points-to Null or an unknown node.
-#if DEBUG
-					System.Diagnostics.Debugger.Break();
-#endif
+					// Silvergun: a Debugger.Break stood here under #if DEBUG. Without a debugger attached it ends the process, so it is
+					// removed (ADR 0022 Stage 1 review W1); the unknown receiver simply resolves no callee, as in Release.
 				}
 
 				foreach (var target in targets)
