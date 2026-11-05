@@ -59,6 +59,7 @@
     <Compile Include="Types\BasicTypeDefinitionComparer.cs" />
     <Compile Include="Types\CustomModifier.cs" />
     <Compile Include="Types\TypeDefinitions.cs" />
+    <Compile Include="Types\Visibility.cs" />
     <Compile Include="Types\TypeHelper.cs" />
     <Compile Include="Types\Types.cs" />
     <Compile Include="ThreeAddressCode\Visitor\IInstructionVisitor.cs" />

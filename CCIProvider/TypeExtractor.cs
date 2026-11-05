@@ -68,6 +68,8 @@ namespace CCIProvider
 
 			type.Base = ExtractType(basedef) as IBasicType;
 			type.IsDelegate = typedef.IsDelegate;
+			type.IsAbstract = typedef.IsAbstract; // Silvergun
+			type.IsSealed = typedef.IsSealed; // Silvergun
 
 			ExtractAttributes(type.Attributes, typedef.Attributes);
 			ExtractGenericTypeParameters(type, typedef);
@@ -565,6 +567,7 @@ namespace CCIProvider
 				var value = ExtractConstant(constdef.CompileTimeValue);
 				var constant = new ConstantDefinition(name, value);
 
+				constant.Visibility = ExtractVisibility(constdef.Visibility); // Silvergun
 				constant.ContainingType = containingType;
 				dest.Add(constant);
 			}
@@ -675,6 +678,11 @@ namespace CCIProvider
 				method.IsVirtual = methoddef.IsVirtual;
 				method.IsConstructor = methoddef.IsConstructor;
 				method.IsExternal = methoddef.IsExternal;
+				// Silvergun: accessibility and vtable/interop flags.
+				method.Visibility = ExtractVisibility(methoddef.Visibility);
+				method.IsSealed = methoddef.IsSealed;
+				method.IsNewSlot = methoddef.IsNewSlot;
+				method.IsPlatformInvoke = methoddef.IsPlatformInvoke;
 				method.ContainingType = containingType;
 				dest.Add(method);
 			}
@@ -877,8 +885,35 @@ namespace CCIProvider
 				ExtractAttributes(field.Attributes, fielddef.Attributes);
 
 				field.IsStatic = fielddef.IsStatic;
+				field.Visibility = ExtractVisibility(fielddef.Visibility); // Silvergun
 				field.ContainingType = containingType;
 				dest.Add(field);
+			}
+		}
+
+		// Silvergun: a type's declared accessibility. A namespace type is public or assembly-only; a nested type
+		// carries a member visibility.
+		public static VisibilityKind ExtractVisibility(Cci.INamedTypeDefinition typedef)
+		{
+			if (typedef is Cci.INestedTypeDefinition nested) return ExtractVisibility(nested.Visibility);
+			if (typedef is Cci.INamespaceTypeDefinition namespaced) return namespaced.IsPublic ? VisibilityKind.Public : VisibilityKind.Assembly;
+			return VisibilityKind.Unknown;
+		}
+
+		// Silvergun: CCI's member visibility as the model's. Compiler-controlled (Other) is reported as Private,
+		// since it is even less accessible; Default and anything unrecognised as Unknown.
+		public static VisibilityKind ExtractVisibility(Cci.TypeMemberVisibility visibility)
+		{
+			switch (visibility & Cci.TypeMemberVisibility.Mask)
+			{
+				case Cci.TypeMemberVisibility.Public: return VisibilityKind.Public;
+				case Cci.TypeMemberVisibility.FamilyOrAssembly: return VisibilityKind.FamilyOrAssembly;
+				case Cci.TypeMemberVisibility.Family: return VisibilityKind.Family;
+				case Cci.TypeMemberVisibility.Assembly: return VisibilityKind.Assembly;
+				case Cci.TypeMemberVisibility.FamilyAndAssembly: return VisibilityKind.FamilyAndAssembly;
+				case Cci.TypeMemberVisibility.Private:
+				case Cci.TypeMemberVisibility.Other: return VisibilityKind.Private;
+				default: return VisibilityKind.Unknown;
 			}
 		}
 	}

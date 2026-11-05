@@ -104,6 +104,7 @@ namespace CCIProvider
 				result.ContainingAssembly = currentAssembly;
 				result.ContainingNamespace = currentNamespace;
 				result.ContainingType = currentType;
+				result.Visibility = TypeExtractor.ExtractVisibility(typedef); // Silvergun
 
 				if (currentType is ITypeDefinitionContainer)
 				{

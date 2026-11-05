@@ -24,6 +24,9 @@ namespace Model.Types
 	{
 		new ITypeDefinition ContainingType { get; set; }
 
+		// Silvergun: declared accessibility; Unknown when the provider did not record it.
+		VisibilityKind Visibility { get; set; }
+
 		bool MatchReference(ITypeMemberReference member);
 	}
 
@@ -79,6 +82,7 @@ namespace Model.Types
 		public Assembly ContainingAssembly { get; set; }
 		public Namespace ContainingNamespace { get; set; }
 		public ITypeDefinition ContainingType { get; set; }
+		public VisibilityKind Visibility { get; set; } // Silvergun
 		public ISet<CustomAttribute> Attributes { get; private set; }
 		public string Name { get; set; }
 		public IList<IBasicType> Interfaces { get; private set; }
@@ -302,6 +306,7 @@ namespace Model.Types
 		public IType Type { get; set; }
 		public string Name { get; set; }
 		public bool IsStatic { get; set; }
+		public VisibilityKind Visibility { get; set; } // Silvergun
 
 		public FieldDefinition(string name, IType type)
 		{
@@ -607,6 +612,12 @@ namespace Model.Types
 		public bool IsVirtual { get; set; }
 		public bool IsConstructor { get; set; }
 		public bool IsExternal { get; set; }
+		// Silvergun: accessibility, and the vtable flags CHA root tagging needs (ECMA-335 II.23.1.10).
+		public VisibilityKind Visibility { get; set; }
+		public bool IsSealed { get; set; }
+		public bool IsNewSlot { get; set; }
+		// Silvergun: pinvokeimpl, which separates a P/Invoke from an internalcall (both are IsExternal).
+		public bool IsPlatformInvoke { get; set; }
 		public MethodBody Body { get; set; }
 
 		public MethodDefinition(string name, IType returnType)
@@ -787,6 +798,7 @@ namespace Model.Types
 		public Assembly ContainingAssembly { get; set; }
 		public Namespace ContainingNamespace { get; set; }
 		public ITypeDefinition ContainingType { get; set; }
+		public VisibilityKind Visibility { get; set; } // Silvergun
 		public ISet<CustomAttribute> Attributes { get; private set; }
 		public string Name { get; set; }
 		public IBasicType UnderlayingType { get; set; }
@@ -915,6 +927,7 @@ namespace Model.Types
 		public ITypeDefinition ContainingType { get; set; }
 		public string Name { get; set; }
 		public Constant Value { get; set; }
+		public VisibilityKind Visibility { get; set; } // Silvergun
 
 		public ConstantDefinition(string name, Constant value)
 		{
@@ -963,6 +976,7 @@ namespace Model.Types
 		public Assembly ContainingAssembly { get; set; }
 		public Namespace ContainingNamespace { get; set; }
 		public ITypeDefinition ContainingType { get; set; }
+		public VisibilityKind Visibility { get; set; } // Silvergun
 		public ISet<CustomAttribute> Attributes { get; private set; }
 		public string Name { get; set; }
 		public IList<IBasicType> Interfaces { get; private set; }
@@ -1130,6 +1144,11 @@ namespace Model.Types
 
 		// TODO: Fix! Remove this property when creating a specific DelegateDefinition model class.
 		public bool IsDelegate { get; set; }
+
+		// Silvergun: accessibility and the class flags CHA's live-type test needs.
+		public VisibilityKind Visibility { get; set; }
+		public bool IsAbstract { get; set; }
+		public bool IsSealed { get; set; }
 
 		public ClassDefinition(string name)
 		{
