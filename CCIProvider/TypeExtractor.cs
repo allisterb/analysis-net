@@ -46,6 +46,7 @@ namespace CCIProvider
 		{
 			var name = typedef.Name.Value;
 			var type = new InterfaceDefinition(name);
+			type.IsComImport = typedef.IsComObject; // Silvergun
 
 			ExtractAttributes(type.Attributes, typedef.Attributes);
 			ExtractGenericTypeParameters(type, typedef);
@@ -70,6 +71,7 @@ namespace CCIProvider
 			type.IsDelegate = typedef.IsDelegate;
 			type.IsAbstract = typedef.IsAbstract; // Silvergun
 			type.IsSealed = typedef.IsSealed; // Silvergun
+			type.IsComImport = typedef.IsComObject; // Silvergun
 
 			ExtractAttributes(type.Attributes, typedef.Attributes);
 			ExtractGenericTypeParameters(type, typedef);
@@ -683,6 +685,8 @@ namespace CCIProvider
 				method.IsSealed = methoddef.IsSealed;
 				method.IsNewSlot = methoddef.IsNewSlot;
 				method.IsPlatformInvoke = methoddef.IsPlatformInvoke;
+				method.IsRuntimeImplemented = methoddef.IsRuntimeImplemented;
+				method.IsRuntimeInternal = methoddef.IsRuntimeInternal;
 				method.ContainingType = containingType;
 				dest.Add(method);
 			}

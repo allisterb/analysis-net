@@ -618,6 +618,9 @@ namespace Model.Types
 		public bool IsNewSlot { get; set; }
 		// Silvergun: pinvokeimpl, which separates a P/Invoke from an internalcall (both are IsExternal).
 		public bool IsPlatformInvoke { get; set; }
+		// Silvergun: the implementation flags (ECMA-335 II.23.1.11): runtime (a delegate's members) and internalcall.
+		public bool IsRuntimeImplemented { get; set; }
+		public bool IsRuntimeInternal { get; set; }
 		public MethodBody Body { get; set; }
 
 		public MethodDefinition(string name, IType returnType)
@@ -977,6 +980,8 @@ namespace Model.Types
 		public Namespace ContainingNamespace { get; set; }
 		public ITypeDefinition ContainingType { get; set; }
 		public VisibilityKind Visibility { get; set; } // Silvergun
+		// Silvergun: tdImport, a [ComImport] or type-library interface whose calls may go to a native COM server.
+		public bool IsComImport { get; set; }
 		public ISet<CustomAttribute> Attributes { get; private set; }
 		public string Name { get; set; }
 		public IList<IBasicType> Interfaces { get; private set; }
@@ -1149,6 +1154,8 @@ namespace Model.Types
 		public VisibilityKind Visibility { get; set; }
 		public bool IsAbstract { get; set; }
 		public bool IsSealed { get; set; }
+		// Silvergun: tdImport, a [ComImport] or type-library coclass, whose body-less members the runtime routes to COM.
+		public bool IsComImport { get; set; }
 
 		public ClassDefinition(string name)
 		{
