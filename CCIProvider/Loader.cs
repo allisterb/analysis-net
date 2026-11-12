@@ -34,6 +34,14 @@ namespace CCIProvider
 			this.readPdbs = readPdbs;
 		}
 
+		// Silvergun: releases what CCIProvider's process-wide caches still hold of the last load (its attribute types, and
+		// through them the CCI and Model objects they reference). Only for a process done with every model it loaded; not
+		// thread-safe against a concurrent load, so callers serialize it with their loads.
+		public static void ReleaseStaticCaches()
+		{
+			TypeExtractor.ClearCache();
+		}
+
 		public void Dispose()
 		{
 			this.cciHost.Dispose();

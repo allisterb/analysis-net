@@ -30,6 +30,12 @@ namespace CCIProvider
 			attributesCache = new Dictionary<Cci.ITypeReference, BasicType>();
 		}
 
+		// Silvergun: drops the last load's attribute types, which otherwise stay rooted here until the next load.
+		internal static void ClearCache()
+		{
+			attributesCache = new Dictionary<Cci.ITypeReference, BasicType>();
+		}
+
 		public EnumDefinition ExtractEnum(Cci.INamedTypeDefinition typedef)
 		{
 			var name = typedef.Name.Value;
