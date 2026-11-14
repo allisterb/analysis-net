@@ -973,7 +973,7 @@ namespace Model.ThreeAddressCode.Values
 
 		public IType Type
 		{
-			get { return new PointerType(this.Value.Type); }
+			get { return new PointerType(this.Value.Type, isManaged: true); } // Silvergun: an address taken is a managed pointer
 		}
 
 		public ISet<IVariable> Variables

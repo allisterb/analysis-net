@@ -167,6 +167,9 @@ namespace Model.Types
 		public int GenericParameterCount { get; set; }
 		public IList<IType> GenericArguments { get; private set; }
         public IBasicType GenericType { get; set; }
+		// Silvergun: set on a generic instance whose tree has more parts than the type extractor builds; it then carries
+		// its definition's name and GenericType but no GenericArguments.
+		public Oversize Oversized { get; set; }
 
 		public BasicType(string name, TypeKind kind = TypeKind.Unknown)
 		{
@@ -272,7 +275,10 @@ namespace Model.Types
 						 this.ContainingNamespace == other.ContainingNamespace &&
                          (this.ContainingAssembly.Equals(other.ContainingAssembly) ||
                           CoreLibraryNames.AreBothCoreLibraries(this.ContainingAssembly, other.ContainingAssembly)) &&
-						 this.GenericArguments.SequenceEqual(other.GenericArguments);
+						 this.GenericArguments.SequenceEqual(other.GenericArguments) &&
+						 // Silvergun: an oversized instance has no arguments, so its size and hash stand in for them.
+						 this.Oversized?.Hash == (other as BasicType)?.Oversized?.Hash &&
+						 this.Oversized?.Parts == (other as BasicType)?.Oversized?.Parts;
 
 			return result;
 		}
@@ -671,14 +677,31 @@ namespace Model.Types
 		}
 	}
 
+	// Silvergun: the size and structural hash of a type too large to build (see BasicType.Oversized).
+	public sealed class Oversize
+	{
+		public Oversize(long parts, string hash)
+		{
+			this.Parts = parts;
+			this.Hash = hash;
+		}
+
+		public long Parts { get; private set; }
+		public string Hash { get; private set; }
+	}
+
 	public class PointerType : IReferenceType
 	{
 		public ISet<CustomAttribute> Attributes { get; private set; }
 		public IType TargetType { get; set; }
+		// Silvergun: a managed pointer (by-ref, T&) rather than an unmanaged one (T*). Set wherever the fork builds a managed
+		// pointer. Not part of Equals or GetHashCode, which still treat T& and T* as one.
+		public bool IsManaged { get; set; }
 
-		public PointerType(IType targetType)
+		public PointerType(IType targetType, bool isManaged = false)
 		{
 			this.TargetType = targetType;
+			this.IsManaged = isManaged;
 			this.Attributes = new HashSet<CustomAttribute>();
 		}
 

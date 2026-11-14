@@ -108,7 +108,7 @@ namespace CCIProvider
 
 			if (isReference)
 			{
-				type = new PointerType(type);
+				type = new PointerType(type, isManaged: true); // Silvergun: by-ref
 			}
 
 			return type;
@@ -187,7 +187,7 @@ namespace CCIProvider
 		public PointerType ExtractType(Cci.IManagedPointerTypeReference typeref)
 		{
 			var target = ExtractType(typeref.TargetType);
-			var type = new PointerType(target);
+			var type = new PointerType(target, isManaged: true); // Silvergun: managed pointer
 
 			ExtractAttributes(type.Attributes, typeref.Attributes);
 
@@ -321,6 +321,15 @@ namespace CCIProvider
 			var genericType = ExtractType(genericTyperef);
             var type = ExtractType(typeref.GenericType, false);
 			type.GenericType = genericType;
+
+			// Silvergun: a TypeSpec DAG expands to a tree that doubles per level; past the bound it is not built.
+			var parts = TypeSize.Parts(typeref);
+			if (parts > TypeSize.MaxParts)
+			{
+				type.Oversized = new Oversize(parts, TypeSize.Hash(typeref));
+				return type;
+			}
+
 			ExtractGenericType(type, typeref);
 
 			return type;

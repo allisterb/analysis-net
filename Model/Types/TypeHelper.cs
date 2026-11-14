@@ -159,7 +159,7 @@ namespace Model.Types
 				type2 = pointerType2.TargetType;
 
 				var targetType = MergedType(type1, type2);
-				result = new PointerType(targetType);
+				result = new PointerType(targetType, pointerType1.IsManaged && pointerType2.IsManaged); // Silvergun
 			}
 			else if (type1 is ArrayType && type2 is ArrayType)
 			{
