@@ -251,6 +251,9 @@ namespace Model.Types
 		public override bool Equals(object obj)
 		{
 			var other = obj as IBasicType;
+			// Silvergun: CCIProvider shares one instance per CCI object, so identity settles comparisons within one owner.
+			if (ReferenceEquals(this, obj)) return true;
+
 			// TODO: Maybe we should also compare the TypeKind?
 			// Assembly identity: two types are considered the same assembly either when
 			// ContainingAssembly matches exactly, or when BOTH sides are known core libraries

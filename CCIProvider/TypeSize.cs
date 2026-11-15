@@ -172,7 +172,7 @@ namespace CCIProvider
 			public T Value { get; }
 		}
 
-		private sealed class ReferenceComparer : IEqualityComparer<Cci.ITypeReference>
+		internal sealed class ReferenceComparer : IEqualityComparer<Cci.ITypeReference>
 		{
 			public static readonly ReferenceComparer Instance = new ReferenceComparer();
 			public bool Equals(Cci.ITypeReference x, Cci.ITypeReference y) => ReferenceEquals(x, y);

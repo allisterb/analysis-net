@@ -24,6 +24,9 @@ namespace CCIProvider
 
 		private Host host;
 
+		// Silvergun: generic instances already built by this extractor (one per assembly), by CCI object.
+		private readonly Dictionary<Cci.ITypeReference, BasicType> instances = new Dictionary<Cci.ITypeReference, BasicType>(TypeSize.ReferenceComparer.Instance);
+
 		public TypeExtractor(Host host)
 		{
 			this.host = host;
@@ -310,6 +313,15 @@ namespace CCIProvider
 
 		public IBasicType ExtractType(Cci.IGenericTypeInstanceReference typeref)
 		{
+			// Silvergun: one Model type per CCI instance object. CCI shares a TypeSpec's decoded type per (owner, row), so
+			// a DAG of instances stays a DAG instead of expanding to a tree per reference. Nothing mutates a type once
+			// built. CCI breaks a self-referencing TypeSpec with a null argument (it marks itself decoded first), so the
+			// instance graph is acyclic; caching before the arguments are read is defensive only.
+			if (instances.TryGetValue(typeref, out var cached))
+			{
+				return cached;
+			}
+
 			var genericTyperef = typeref.GenericType;
 
 			if (genericTyperef is Cci.ISpecializedNestedTypeReference)
@@ -321,6 +333,7 @@ namespace CCIProvider
 			var genericType = ExtractType(genericTyperef);
             var type = ExtractType(typeref.GenericType, false);
 			type.GenericType = genericType;
+			instances.Add(typeref, type);
 
 			// Silvergun: a TypeSpec DAG expands to a tree that doubles per level; past the bound it is not built.
 			var parts = TypeSize.Parts(typeref);
