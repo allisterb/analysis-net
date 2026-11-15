@@ -315,8 +315,8 @@ namespace CCIProvider
 		{
 			// Silvergun: one Model type per CCI instance object. CCI shares a TypeSpec's decoded type per (owner, row), so
 			// a DAG of instances stays a DAG instead of expanding to a tree per reference. Nothing mutates a type once
-			// built. CCI breaks a self-referencing TypeSpec with a null argument (it marks itself decoded first), so the
-			// instance graph is acyclic; caching before the arguments are read is defensive only.
+			// built. CCI breaks a self-referencing TypeSpec with Dummy.TypeReference as the argument (it marks itself
+			// decoded first), so the instance graph is acyclic; caching before the arguments are read is defensive only.
 			if (instances.TryGetValue(typeref, out var cached))
 			{
 				return cached;
@@ -335,11 +335,11 @@ namespace CCIProvider
 			type.GenericType = genericType;
 			instances.Add(typeref, type);
 
-			// Silvergun: a TypeSpec DAG expands to a tree that doubles per level; past the bound it is not built.
-			var parts = TypeSize.Parts(typeref);
-			if (parts > TypeSize.MaxParts)
+			// Silvergun: a TypeSpec DAG expands to a tree that doubles per level; past the bounds (parts or name
+			// characters) it is not built.
+			if (TypeSize.IsOversized(typeref))
 			{
-				type.Oversized = new Oversize(parts, TypeSize.Hash(typeref));
+				type.Oversized = new Oversize(TypeSize.Parts(typeref), TypeSize.Hash(typeref));
 				return type;
 			}
 

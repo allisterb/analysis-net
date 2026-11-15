@@ -12,12 +12,13 @@ using Cci = Microsoft.Cci;
 namespace CCIProvider
 {
 	/// <summary>
-	/// The number of parts a type reference expands to as a tree, and a structural hash of it. Metadata can name a
-	/// TypeSpec inside another's signature, so a few rows make a type whose tree doubles per level; CCI shares those
-	/// rows as objects, so these walks, memoised by object, are linear in the metadata while the tree is exponential.
-	/// A generic instance of more than <see cref="MaxParts"/> parts is not built by the type extractor, and both of
-	/// Silvergun's namers render it from this measure alone, so the two agree by construction.
-	/// Never throws: a reference that cannot be read measures 0 parts and hashes to "?".
+	/// The number of parts and name characters a type reference expands to as a tree, and a structural hash of it.
+	/// Metadata can name a TypeSpec inside another's signature, so a few rows make a type whose tree doubles per level;
+	/// CCI shares those rows as objects, so these walks, memoised by object, are linear in the metadata while the tree is
+	/// exponential. A generic instance past <see cref="MaxParts"/> or <see cref="MaxChars"/> (<see cref="IsOversized"/>)
+	/// is not built by the type extractor, and both of Silvergun's namers render it from this measure alone, so the two
+	/// agree by construction.
+	/// Never throws: a reference that cannot be read measures 0 parts and 0 chars, and hashes to "?".
 	/// </summary>
 	public static class TypeSize
 	{
@@ -31,8 +32,29 @@ namespace CCIProvider
 		public static long Parts(Cci.ITypeReference type) =>
 			Guard(() => Fold(type, parts, _ => 0L, (node, children) => children.Aggregate(1L + node.Extra, (sum, c) => Add(sum, Math.Max(1, c)))), 0L);
 
-		/// <summary>Whether <paramref name="type"/> has more than <see cref="MaxParts"/> parts.</summary>
-		public static bool IsOversized(Cci.ITypeReference type) => Parts(type) > MaxParts;
+		/// <summary>
+		/// The most name characters a generic instance may have and still be built. Within <see cref="MaxParts"/>, long
+		/// leaf names can still render a name of tens of thousands of characters at every reference.
+		/// </summary>
+		public const long MaxChars = 4096;
+
+		/// <summary>
+		/// The name characters of <paramref name="type"/>, saturating: the length of each node's own identity (its
+		/// <see cref="Hash"/> payload: kind, namespace, name, arity, index) summed over the tree, and
+		/// <see cref="UnknownChars"/> for a null child, a child that closes a cycle, or a node whose own identity cannot be
+		/// read, as the namers render each "&lt;unknown&gt;". A failure reading a node's children falls back to 0 for the
+		/// whole tree, as <see cref="Parts"/> does. A proxy for the length of its rendered name within a small factor (the
+		/// namers add a separator per argument), measured without rendering it.
+		/// </summary>
+		public static long Chars(Cci.ITypeReference type) =>
+			type == null ? 0L : Guard(() => Fold(type, chars, _ => UnknownChars,
+				(node, children) => children.Aggregate(Guard(() => (long)Payload(node.Type).Length, UnknownChars), Add)), 0L);
+
+		/// <summary>The characters a null, cyclic or unreadable child counts: the length of "&lt;unknown&gt;".</summary>
+		public const long UnknownChars = 9;
+
+		/// <summary>Whether <paramref name="type"/> has more than <see cref="MaxParts"/> parts or <see cref="MaxChars"/> name characters.</summary>
+		public static bool IsOversized(Cci.ITypeReference type) => Parts(type) > MaxParts || Chars(type) > MaxChars;
 
 		/// <summary>The structural hash of <paramref name="type"/>: SHA-256 over each node's kind, name or index and its children's digests, as 16 hex chars.</summary>
 		public static string Hash(Cci.ITypeReference type) =>
@@ -165,6 +187,7 @@ namespace CCIProvider
 		// Weak keys: an entry lives only as long as CCI's object, so the memos root nothing.
 		private static readonly ConditionalWeakTable<Cci.ITypeReference, Box<long>> parts = new ConditionalWeakTable<Cci.ITypeReference, Box<long>>();
 		private static readonly ConditionalWeakTable<Cci.ITypeReference, Box<byte[]>> digests = new ConditionalWeakTable<Cci.ITypeReference, Box<byte[]>>();
+		private static readonly ConditionalWeakTable<Cci.ITypeReference, Box<long>> chars = new ConditionalWeakTable<Cci.ITypeReference, Box<long>>();
 
 		private sealed class Box<T>
 		{
